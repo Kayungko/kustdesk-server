@@ -1,3 +1,63 @@
+# 关于此分支
+
+[![build](https://github.com/lejianwen/rustdesk-server/actions/workflows/build.yaml/badge.svg)](https://github.com/lejianwen/rustdesk-server/actions/workflows/build.yaml)
+
+- 解决当客户端登录了`Api`账号时链接超时的问题
+- s6镜像添加了`Api`支持，`Api`开源地址 https://github.com/lejianwen/rustdesk-api
+- 是否必须登录才能链接， `MUST_LOGIN` 默认为 `N`，设置为 `Y` 则必须登录才能链接
+- `RUSTDESK_API_JWT_KEY`，设置后会通过`JWT`校验token的合法性
+- Support client websocket (client >= 1.4.1)
+
+## docker镜像地址
+
+- s6 镜像 [lejianwen/rustdesk-server-s6](https://hub.docker.com/r/lejianwen/rustdesk-server-s6)
+
+```yaml
+ networks:
+   rustdesk-net:
+     external: false
+ services:
+   rustdesk:
+     ports:
+       - 21114:21114
+       - 21115:21115
+       - 21116:21116
+       - 21116:21116/udp
+       - 21117:21117
+       - 21118:21118
+       - 21119:21119
+     image: lejianwen/rustdesk-server-s6:latest
+     environment:
+       - RELAY=<relay_server[:port]>
+       - ENCRYPTED_ONLY=1
+       - MUST_LOGIN=N
+       - TZ=Asia/Shanghai
+       - RUSTDESK_API_RUSTDESK_ID_SERVER=<id_server[:21116]>
+       - RUSTDESK_API_RUSTDESK_RELAY_SERVER=<relay_server[:21117]>
+       - RUSTDESK_API_RUSTDESK_API_SERVER=http://<api_server[:21114]>
+       - RUSTDESK_API_KEY_FILE=/data/id_ed25519.pub
+       - RUSTDESK_API_JWT_KEY=xxxxxx # jwt key
+     volumes:
+       - /data/rustdesk/server:/data
+       - /data/rustdesk/api:/app/data #将数据库挂载
+     networks:
+       - rustdesk-net
+     restart: unless-stopped
+
+```
+
+- 普通镜像 [lejianwen/rustdesk-server](https://hub.docker.com/r/lejianwen/rustdesk-server)
+
+# API功能截图
+
+![Api.png](./readme/api.png)
+
+![commnd.png](./readme/command_simple.png)
+
+更多查看 [RustDesk Api](https://github.com/lejianwen/rustdesk-api)
+
+
+
 <p align="center">
   <a href="#如何自行建置">自行建置</a> •
   <a href="#Docker-映像檔">Docker</a> •
@@ -46,8 +106,8 @@ Docker 映像檔會在每次 GitHub 發布時自動生成並發布。我們有�
 
 這些映像檔是基於 `ubuntu-20.04` 建置的，僅添加了兩個主要的執行檔（`hbbr` 和 `hbbs`）。它們可在 [Docker Hub](https://hub.docker.com/r/rustdesk/rustdesk-server/) 上取得，帶有以下tags：
 
-| 架構    | image:tag                                 |
-| ------- | ----------------------------------------- |
+| 架構      | image:tag                                 |
+|---------|-------------------------------------------|
 | amd64   | `rustdesk/rustdesk-server:latest`         |
 | arm64v8 | `rustdesk/rustdesk-server:latest-arm64v8` |
 
@@ -116,10 +176,11 @@ services:
 
 ## 基於 S6-overlay 的映象檔
 
-這些映象檔是針對 `busybox:stable` 建置的，並添加了執行檔（hbbr 和 hbbs）以及 [S6-overlay](https://github.com/just-containers/s6-overlay)。 它們在以及這些 tags 在 [Docker hub](https://hub.docker.com/r/rustdesk/rustdesk-server-s6/) 可用：
+這些映象檔是針對 `busybox:stable` 建置的，並添加了執行檔（hbbr 和 hbbs）以及 [S6-overlay](https://github.com/just-containers/s6-overlay)。 它們在以及這些 tags
+在 [Docker hub](https://hub.docker.com/r/rustdesk/rustdesk-server-s6/) 可用：
 
-| 架構      | version | image:tag                                    |
-| --------- | ------- | -------------------------------------------- |
+| 架構        | version | image:tag                                    |
+|-----------|---------|----------------------------------------------|
 | multiarch | latest  | `rustdesk/rustdesk-server-s6:latest`         |
 | amd64     | latest  | `rustdesk/rustdesk-server-s6:latest-amd64`   |
 | i386      | latest  | `rustdesk/rustdesk-server-s6:latest-i386`    |
@@ -187,14 +248,14 @@ services:
 
 對於此容器映象檔，您可以使用這些環境變數，**除了**以下**環境變數**部分指定的那些。
 
-| 環境變數       | 是否可選 | 敘述                                       |
-| -------------- | -------- | ------------------------------------------ |
-| RELAY          | 否       | 運行此容器的機器的 IP 地址/ DNS 名稱       |
-| ENCRYPTED_ONLY | 是       | 如果設置為 **"1"**，將不接受未加密的連接。 |
-| KEY_PUB        | 是       | 金鑰對中的公鑰（Public Key）               |
-| KEY_PRIV       | 是       | 金鑰對中的私鑰（Private Key）               |
+| 環境變數           | 是否可選 | 敘述                        |
+|----------------|------|---------------------------|
+| RELAY          | 否    | 運行此容器的機器的 IP 地址/ DNS 名稱   |
+| ENCRYPTED_ONLY | 是    | 如果設置為 **"1"**，將不接受未加密的連接。 |
+| KEY_PUB        | 是    | 金鑰對中的公鑰（Public Key）       |
+| KEY_PRIV       | 是    | 金鑰對中的私鑰（Private Key）      |
 
-###  在基於 S6-overlay 的 Secret 管理
+### 在基於 S6-overlay 的 Secret 管理
 
 您可以將金鑰對保存在 Docker volume 中，但最佳實踐建議不要將金鑰寫入文件系統；因此，我們提供了一些選項。
 
@@ -332,16 +393,16 @@ Secret Key:  egAVd44u33ZEUIDTtksGcHeVeAwywarEdHmf99KM5ajwEsuG3NQFT9coAfiZ6nen4hf
 可以使用這些 ENV 參數來配置 hbbs 和 hbbr。
 您可以像往常一樣指定參數，或者使用 .env 文件。
 
-| 參數                  | 執行檔    | 敘述                                                                 |
-| --------------------- | --------- | -------------------------------------------------------------------- |
-| ALWAYS_USE_RELAY      | hbbs      | 如果設為 **"Y"**，禁止直接點對點連接                                 |
-| DB_URL                | hbbs      | 資料庫的路徑                                                         |
-| DOWNGRADE_START_CHECK | hbbr      | 降級檢查之前的延遲時間（以秒為單位）                                 |
-| DOWNGRADE_THRESHOLD   | hbbr      | 降級檢查的閾值（bit/ms）                                             |
-| KEY                   | hbbs/hbbr | 如果設置了，將強制使用特定金鑰，如果設為 **"_"**，則強制使用任何金鑰 |
-| LIMIT_SPEED           | hbbr      | 速度限制（以Mb/s為單位）                                             |
-| PORT                  | hbbs/hbbr | 監聽端口（hbbs為21116，hbbr為21117）                                 |
-| RELAY_SERVERS         | hbbs      | 運行hbbr的機器的IP地址/DNS名稱（用逗號分隔）                         |
-| RUST_LOG              | all       | 設定 debug level (error\|warn\|info\|debug\|trace)                   |
-| SINGLE_BANDWIDTH      | hbbr      | 單個連接的最大頻寬（以Mb/s為單位）                                   |
-| TOTAL_BANDWIDTH       | hbbr      | 最大總頻寬（以Mb/s為單位）                                           |
+| 參數                    | 執行檔       | 敘述                                               |
+|-----------------------|-----------|--------------------------------------------------|
+| ALWAYS_USE_RELAY      | hbbs      | 如果設為 **"Y"**，禁止直接點對點連接                           |
+| DB_URL                | hbbs      | 資料庫的路徑                                           |
+| DOWNGRADE_START_CHECK | hbbr      | 降級檢查之前的延遲時間（以秒為單位）                               |
+| DOWNGRADE_THRESHOLD   | hbbr      | 降級檢查的閾值（bit/ms）                                  |
+| KEY                   | hbbs/hbbr | 如果設置了，將強制使用特定金鑰，如果設為 **"_"**，則強制使用任何金鑰           |
+| LIMIT_SPEED           | hbbr      | 速度限制（以Mb/s為單位）                                   |
+| PORT                  | hbbs/hbbr | 監聽端口（hbbs為21116，hbbr為21117）                      |
+| RELAY_SERVERS         | hbbs      | 運行hbbr的機器的IP地址/DNS名稱（用逗號分隔）                      |
+| RUST_LOG              | all       | 設定 debug level (error\|warn\|info\|debug\|trace) |
+| SINGLE_BANDWIDTH      | hbbr      | 單個連接的最大頻寬（以Mb/s為單位）                              |
+| TOTAL_BANDWIDTH       | hbbr      | 最大總頻寬（以Mb/s為單位）                                  |

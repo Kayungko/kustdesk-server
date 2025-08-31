@@ -5,10 +5,11 @@
 
 [![build](https://github.com/lejianwen/rustdesk-server/actions/workflows/build.yaml/badge.svg)](https://github.com/lejianwen/rustdesk-server/actions/workflows/build.yaml)
 
-- 解决当客户端登录了`Api`账号时链接超时的问题
-- s6镜像添加了`Api`支持，`Api`开源地址 https://github.com/lejianwen/rustdesk-api
+- 解决当客户端登录了`API`账号时链接超时的问题
+- s6镜像添加了`API`支持，`API`开源地址 https://github.com/lejianwen/rustdesk-api
 - 是否必须登录才能链接， `MUST_LOGIN` 默认为 `N`，设置为 `Y` 则必须登录才能链接
 - `RUSTDESK_API_JWT_KEY`，设置后会通过`JWT`校验token的合法性
+- 支持client websocket (client >= 1.4.1)
 
 ## docker镜像地址
 
