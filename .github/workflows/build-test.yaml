@@ -171,7 +171,6 @@ jobs:
       #  this has to run only if invoked by a new tag
       - name: Create and push manifest (:ve.rs.ion)
         uses: Noelware/docker-manifest-action@master
-        if: github.event_name != 'workflow_dispatch'
         with:
           tags: ${{ secrets.DOCKER_IMAGE }}:${{ env.GIT_TAG }}
           inputs: |
