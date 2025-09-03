@@ -1,0 +1,67 @@
+version: '3.8'
+
+networks:
+  kustdesk-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+services:
+  # KustDesk Server (ID + Relay)
+  kustdesk-server:
+    image: lejianwen/rustdesk-server-s6:latest  # 暂时使用官方镜像
+    container_name: kustdesk-server
+    environment:
+      - RELAY=192.168.1.66:21117
+      - ENCRYPTED_ONLY=1
+      - TZ=Asia/Shanghai
+      - RUSTDESK_API_RUSTDESK_ID_SERVER=192.168.1.66:21116
+      - RUSTDESK_API_RUSTDESK_RELAY_SERVER=192.168.1.66:21117
+      - RUSTDESK_API_RUSTDESK_API_SERVER=http://192.168.1.66:21114
+    ports:
+      - "21115:21115"      # TCP hole punching
+      - "21116:21116"      # ID server
+      - "21116:21116/udp"  # ID server UDP
+      - "21117:21117"      # Relay server
+      - "21118:21118"      # Web client
+      - "21119:21119"      # Web client HTTPS
+    volumes:
+      - ./data/rustdesk/server:/data
+      - ./data/rustdesk/api:/app/data
+    networks:
+      - kustdesk-net
+    restart: unless-stopped
+
+  # KustDesk API (包含API + Web)
+  kustdesk-api:
+    image: kayung1012/kustdesk-api:latest
+    container_name: kustdesk-api
+    environment:
+      - TZ=Asia/Shanghai
+      - RUSTDESK_API_LANG=zh-CN
+      - RUSTDESK_API_RUSTDESK_ID_SERVER=192.168.1.66:21116
+      - RUSTDESK_API_RUSTDESK_RELAY_SERVER=192.168.1.66:21117
+      - RUSTDESK_API_RUSTDESK_API_SERVER=http://192.168.1.66:21114
+      - RUSTDESK_API_RUSTDESK_KEY=your_rustdesk_key_here
+      - RUSTDESK_API_APP_WEB_CLIENT=1
+      - RUSTDESK_API_APP_REGISTER=false
+      - RUSTDESK_API_APP_SHOW_SWAGGER=0
+      - RUSTDESK_API_APP_MAX_CONCURRENT_DEVICES=3
+    ports:
+      - "21114:21114"
+    volumes:
+      - ./data/rustdesk/api:/app/data
+      - ./conf:/app/conf
+      - ./logs:/app/runtime
+    networks:
+      - kustdesk-net
+    restart: unless-stopped
+    depends_on:
+      - kustdesk-server
+
+volumes:
+  kustdesk-server-data:
+    driver: local
+  kustdesk-api-data:
+    driver: local
