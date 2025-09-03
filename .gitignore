@@ -10,3 +10,12 @@ src/version.rs
 db_v2.sqlite3
 test.*
 .idea
+
+# 运行时目录
+conf/
+data/
+logs/
+
+# Docker相关
+*.env
+.env.local
