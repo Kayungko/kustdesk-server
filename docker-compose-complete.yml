@@ -10,7 +10,7 @@ networks:
 services:
   # KustDesk Server (ID + Relay)
   kustdesk-server:
-    image: lejianwen/rustdesk-server-s6:latest  # 暂时使用官方镜像
+    image: kayung1012/kustdesk-server:latest  # 使用你的镜像
     container_name: kustdesk-server
     environment:
       - RELAY=192.168.1.66:21117

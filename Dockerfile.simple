@@ -1,5 +1,5 @@
 # 使用多阶段构建
-FROM rust:latest-alpine AS builder
+FROM rust:1.76-alpine AS builder
 
 # 安装构建依赖
 RUN apk add --no-cache \
