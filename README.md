@@ -1,19 +1,17 @@
 
-# 关于此分支
+# KustDesk Server
 
-
-
-[![build](https://github.com/lejianwen/rustdesk-server/actions/workflows/build.yaml/badge.svg)](https://github.com/lejianwen/rustdesk-server/actions/workflows/build.yaml)
+[![build](https://github.com/Kayungko/kustdesk-server/actions/workflows/build.yaml/badge.svg)](https://github.com/Kayungko/kustdesk-server/actions/workflows/build.yaml)
 
 - 解决当客户端登录了`API`账号时链接超时的问题
-- s6镜像添加了`API`支持，`API`开源地址 https://github.com/lejianwen/rustdesk-api
+- s6镜像添加了`API`支持，`API`开源地址 https://github.com/Kayungko/kustdesk-server
 - 是否必须登录才能链接， `MUST_LOGIN` 默认为 `N`，设置为 `Y` 则必须登录才能链接
 - `RUSTDESK_API_JWT_KEY`，设置后会通过`JWT`校验token的合法性
 - 支持client websocket (client >= 1.4.1)
 
-## docker镜像地址
+## Docker镜像地址
 
-- s6 镜像 [lejianwen/rustdesk-server-s6](https://hub.docker.com/r/lejianwen/rustdesk-server-s6)
+- s6 镜像 [kayungko/kustdesk-server-s6](https://hub.docker.com/r/kayungko/kustdesk-server-s6)
 
 ```yaml
  networks:
@@ -29,7 +27,7 @@
        - 21117:21117
        - 21118:21118
        - 21119:21119
-     image: lejianwen/rustdesk-server-s6:latest
+     image: kayungko/kustdesk-server-s6:latest
      environment:
        - RELAY=<relay_server[:port]>
        - ENCRYPTED_ONLY=1
@@ -49,7 +47,7 @@
        
 ```
 
-- 普通镜像 [lejianwen/rustdesk-server](https://hub.docker.com/r/lejianwen/rustdesk-server)
+- 普通镜像 [kayungko/kustdesk-server](https://hub.docker.com/r/kayungko/kustdesk-server)
 
 
 # API功能截图
@@ -58,7 +56,7 @@
 
 ![commnd.png](./readme/command_simple.png)
 
-更多查看 [RustDesk Api](https://github.com/lejianwen/rustdesk-api)
+更多查看 [KustDesk API](https://github.com/Kayungko/kustdesk-server)
 
 
 --- 
@@ -73,11 +71,11 @@
   [<a href="README-EN.md">English</a>] | [<a href="README-DE.md">Deutsch</a>] | [<a href="README-NL.md">Nederlands</a>] | [<a href="README-TW.md">繁体中文</a>]<br>
 </p>
 
-# RustDesk Server Program
+# KustDesk Server Program
 
 
 
-[**下载**](https://github.com/lejianwen/rustdesk-server/releases)
+[**下载**](https://github.com/Kayungko/kustdesk-server/releases)
 
 [**说明文件**](https://rustdesk.com/docs/zh-cn/self-host/)
 
@@ -95,7 +93,7 @@ cargo build --release
 - hbbr - RustDesk 中继服务器
 - rustdesk-utils - RustDesk 命令行工具
 
-您可以在 [releases](https://github.com/lejianwen/rustdesk-server/releases) 页面中找到最新的服务端软件。
+您可以在 [releases](https://github.com/Kayungko/kustdesk-server/releases) 页面中找到最新的服务端软件。
 
 如果您需要额外的功能支持，[RustDesk 专业版服务器](https://rustdesk.com/pricing.html) 获取更适合您。
 

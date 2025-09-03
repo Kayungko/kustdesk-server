@@ -1,17 +1,17 @@
 
-# About this repository
+# KustDesk Server
 
-[![build](https://github.com/lejianwen/rustdesk-server/actions/workflows/build.yaml/badge.svg)](https://github.com/lejianwen/rustdesk-server/actions/workflows/build.yaml)
+[![build](https://github.com/Kayungko/kustdesk-server/actions/workflows/build.yaml/badge.svg)](https://github.com/Kayungko/kustdesk-server/actions/workflows/build.yaml)
 
 - Solves the issue of connection timeout when the client logs in with an `API` account
-- Added `API` support to the s6 image, `API` open-source repository: https://github.com/lejianwen/rustdesk-api
+- Added `API` support to the s6 image, `API` open-source repository: https://github.com/Kayungko/kustdesk-server
 - Whether login is required to connect, `MUST_LOGIN` defaults to `N`, set to `Y` to require login for connection
 - `RUSTDESK_API_JWT_KEY`, when set, validates the token's legitimacy through `JWT`
 - Support client websocket (client >= 1.4.1)
 
-## docker 
+## Docker
 
-- s6 Image [lejianwen/rustdesk-server-s6](https://hub.docker.com/r/lejianwen/rustdesk-server-s6)
+- s6 Image [kayungko/kustdesk-server-s6](https://hub.docker.com/r/kayungko/kustdesk-server-s6)
 
 ```yaml
  networks:
@@ -27,7 +27,7 @@
        - 21117:21117
        - 21118:21118
        - 21119:21119
-     image: lejianwen/rustdesk-server-s6:latest
+     image: kayungko/kustdesk-server-s6:latest
      environment:
        - RELAY=<relay_server[:port]>
        - ENCRYPTED_ONLY=1
@@ -47,7 +47,7 @@
        
 ```
 
-- Common Image [lejianwen/rustdesk-server](https://hub.docker.com/r/lejianwen/rustdesk-server)
+- Common Image [kayungko/kustdesk-server](https://hub.docker.com/r/kayungko/kustdesk-server)
 
 
 # API Screenshot
@@ -56,7 +56,7 @@
 
 ![commnd.png](./readme/command_simple.png)
 
-More See [RustDesk Api](https://github.com/lejianwen/rustdesk-api)
+More See [KustDesk API](https://github.com/Kayungko/kustdesk-server)
 
 
 
@@ -72,7 +72,7 @@ More See [RustDesk Api](https://github.com/lejianwen/rustdesk-api)
   [<a href="README-DE.md">Deutsch</a>] | [<a href="README-NL.md">Nederlands</a>] | [<a href="README-TW.md">繁體中文</a>] | [<a href="README-ZH.md">简体中文</a>]<br>
 </p>
 
-# RustDesk Server Program
+# KustDesk Server Program
 
 [![build](https://github.com/rustdesk/rustdesk-server/actions/workflows/build.yaml/badge.svg)](https://github.com/rustdesk/rustdesk-server/actions/workflows/build.yaml)
 
