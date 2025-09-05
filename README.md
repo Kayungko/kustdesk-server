@@ -410,3 +410,306 @@ Secret Key:  egAVd44u33ZEUIDTtksGcHeVeAwywarEdHmf99KM5ajwEsuG3NQFT9coAfiZ6nen4hf
 | RUST_LOG              | all           | 设置 debug level (error\|warn\|info\|debug\|trace) |
 | SINGLE_BANDWIDTH      | hbbr          | 单个连接的最大带宽（以Mb/s为单位）                              |
 | TOTAL_BANDWIDTH       | hbbr          | 最大总带宽（以Mb/s为单位）                                  |
+
+---
+
+# 🚀 完整构建教程
+
+## 📋 构建前准备
+
+### 系统要求
+- **操作系统**: Linux, macOS, Windows
+- **Rust版本**: 1.76+ (推荐最新稳定版)
+- **内存**: 至少2GB可用内存
+- **磁盘空间**: 至少1GB可用空间
+
+### 安装Rust
+```bash
+# 安装Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# 重新加载环境变量
+source ~/.cargo/env
+
+# 验证安装
+rustc --version
+cargo --version
+```
+
+## 🔧 本地构建
+
+### 1. 克隆项目
+```bash
+# 克隆主项目
+git clone https://github.com/Kayungko/kustdesk-server.git
+cd kustdesk-server
+
+# 初始化子模块
+git submodule update --init --recursive
+```
+
+### 2. 构建项目
+```bash
+# 开发构建
+cargo build
+
+# 发布构建
+cargo build --release
+
+# 构建特定二进制文件
+cargo build --release --bin hbbs --bin hbbr --bin rustdesk-utils
+```
+
+### 3. 构建产物
+构建完成后，可执行文件位于 `target/release/` 目录：
+```bash
+ls -la target/release/
+# hbbs          # ID服务器
+# hbbr          # 中继服务器  
+# rustdesk-utils # 工具集
+```
+
+## 🐳 Docker构建
+
+### 1. 使用Dockerfile.simple构建
+```bash
+# 构建镜像
+docker build -f Dockerfile.simple -t kayung1012/kustdesk-server:latest .
+
+# 查看构建的镜像
+docker images | grep kustdesk-server
+```
+
+### 2. 使用官方Dockerfile构建
+```bash
+# 构建S6-overlay镜像
+docker build -f docker/Dockerfile -t kayung1012/kustdesk-server-s6:latest .
+
+# 构建普通镜像
+docker build -f docker/Dockerfile -t kayung1012/kustdesk-server:latest .
+```
+
+### 3. 多平台构建
+```bash
+# 启用Docker Buildx
+docker buildx create --use
+
+# 构建多平台镜像
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -f Dockerfile.simple \
+  -t kayung1012/kustdesk-server:latest \
+  --push .
+```
+
+## 🚀 部署方式
+
+### 方式1: 直接运行
+```bash
+# 启动ID服务器
+./target/release/hbbs -k /path/to/key -r 192.168.1.66:21117
+
+# 启动中继服务器
+./target/release/hbbr -k /path/to/key -r 192.168.1.66:21117
+```
+
+### 方式2: Docker Compose部署
+```bash
+# 使用完整配置部署
+docker-compose -f docker-compose-complete.yml up -d
+
+# 查看服务状态
+docker-compose -f docker-compose-complete.yml ps
+
+# 查看日志
+docker-compose -f docker-compose-complete.yml logs -f
+```
+
+### 方式3: 系统服务部署
+```bash
+# 复制systemd服务文件
+sudo cp systemd/rustdesk-server.service /etc/systemd/system/
+
+# 重新加载systemd
+sudo systemctl daemon-reload
+
+# 启用并启动服务
+sudo systemctl enable rustdesk-server
+sudo systemctl start rustdesk-server
+```
+
+## 🔑 密钥管理
+
+### 生成密钥对
+```bash
+# 使用rustdesk-utils生成
+./target/release/rustdesk-utils genkeypair
+
+# 或使用Docker镜像生成
+docker run --rm kayung1012/kustdesk-server:latest \
+  /usr/bin/rustdesk-utils genkeypair
+```
+
+### 密钥配置
+```bash
+# 设置环境变量
+export KEY_PUB="your_public_key"
+export KEY_PRIV="your_private_key"
+
+# 或创建密钥文件
+echo "your_public_key" > /data/id_ed25519.pub
+echo "your_private_key" > /data/id_ed25519
+```
+
+## ⚙️ 环境变量配置
+
+### 核心配置
+```bash
+# 服务器配置
+RELAY=192.168.1.66:21117          # 中继服务器地址
+ENCRYPTED_ONLY=1                   # 仅允许加密连接
+MUST_LOGIN=Y                       # 必须登录才能连接
+
+# API集成配置
+RUSTDESK_API_RUSTDESK_ID_SERVER=192.168.1.66:21116
+RUSTDESK_API_RUSTDESK_RELAY_SERVER=192.168.1.66:21117
+RUSTDESK_API_RUSTDESK_API_SERVER=http://192.168.1.66:21114
+RUSTDESK_API_JWT_KEY=your_jwt_secret_here
+```
+
+### 性能配置
+```bash
+# 带宽限制
+LIMIT_SPEED=4Mb/s                  # 单个连接速度限制
+TOTAL_BANDWIDTH=1024Mb/s           # 总带宽限制
+SINGLE_BANDWIDTH=16Mb/s            # 单连接最大带宽
+
+# 连接配置
+DOWNGRADE_THRESHOLD=0.66           # 降级阈值
+DOWNGRADE_START_CHECK=1800s        # 降级检查延迟
+```
+
+## 📊 监控和日志
+
+### 查看服务状态
+```bash
+# Docker状态
+docker ps | grep kustdesk
+
+# 系统服务状态
+sudo systemctl status rustdesk-server
+
+# 端口监听状态
+netstat -tlnp | grep -E "2111[5-9]"
+```
+
+### 查看日志
+```bash
+# Docker日志
+docker logs kustdesk-server
+
+# 系统服务日志
+sudo journalctl -u rustdesk-server -f
+
+# 实时日志
+tail -f /var/log/rustdesk-server.log
+```
+
+## 🔧 故障排除
+
+### 常见问题
+
+#### 1. 端口被占用
+```bash
+# 检查端口占用
+sudo lsof -i :21116
+sudo netstat -tlnp | grep 21116
+
+# 释放端口
+sudo kill -9 <PID>
+```
+
+#### 2. 权限问题
+```bash
+# 检查文件权限
+ls -la /data/rustdesk/
+sudo chown -R rustdesk:rustdesk /data/rustdesk/
+sudo chmod 755 /data/rustdesk/
+```
+
+#### 3. 网络连接问题
+```bash
+# 检查防火墙
+sudo ufw status
+sudo ufw allow 21115:21119/tcp
+sudo ufw allow 21116/udp
+
+# 检查SELinux
+sudo setsebool -P httpd_can_network_connect 1
+```
+
+### 性能优化
+```bash
+# 调整系统参数
+echo 'net.core.rmem_max = 134217728' >> /etc/sysctl.conf
+echo 'net.core.wmem_max = 134217728' >> /etc/sysctl.conf
+sudo sysctl -p
+
+# 优化Docker配置
+echo '{"default-ulimits":{"nofile":{"name":"nofile","hard":65536,"soft":65536}}}' >> /etc/docker/daemon.json
+sudo systemctl restart docker
+```
+
+## 📚 相关资源
+
+### 官方文档
+- [RustDesk官方文档](https://rustdesk.com/docs/)
+- [自托管指南](https://rustdesk.com/docs/zh-cn/self-host/)
+
+### 社区资源
+- [GitHub Issues](https://github.com/Kayungko/kustdesk-server/issues)
+- [Discord社区](https://discord.gg/nDceKgxnkV)
+
+### 工具和脚本
+- [一键部署脚本](./scripts/deploy.sh)
+- [监控脚本](./scripts/monitor.sh)
+- [备份脚本](./scripts/backup.sh)
+
+---
+
+## 🤝 贡献指南
+
+### 提交Issue
+1. 使用Issue模板
+2. 提供详细的错误信息
+3. 包含系统环境信息
+4. 附上相关日志
+
+### 提交PR
+1. Fork项目到你的仓库
+2. 创建功能分支
+3. 提交代码更改
+4. 创建Pull Request
+
+### 代码规范
+- 遵循Rust编码规范
+- 添加适当的注释
+- 编写单元测试
+- 更新相关文档
+
+---
+
+## 📄 许可证
+
+本项目基于 [AGPL-3.0](LICENSE) 许可证开源。
+
+---
+
+## 📞 联系我们
+
+- **GitHub**: [https://github.com/Kayungko](https://github.com/Kayungko)
+- **项目地址**: [https://github.com/Kayungko/kustdesk-server](https://github.com/Kayungko/kustdesk-server)
+- **Docker Hub**: [https://hub.docker.com/r/kayung1012/kustdesk-server](https://hub.docker.com/r/kayung1012/kustdesk-server)
+
+---
+
+**KustDesk Server** - 为KustDesk生态提供强大的服务器支持 🚀
